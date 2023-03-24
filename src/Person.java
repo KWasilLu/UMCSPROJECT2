@@ -1,6 +1,10 @@
+import java.io.File;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Formatter;
+import java.util.Scanner;
 import java.util.Set;
 
 public class Person implements Serializable {
@@ -55,6 +59,26 @@ public class Person implements Serializable {
                 if (leftSideParent == rightSideParent)
                     throw new IncestException(leftSideParent, this);
             }
+        }
+    }
+    public static Person loadPerson(String path) {
+        File file = new File(path);
+       try {
+           Scanner scanner = new Scanner(file);
+           String name = scanner.nextLine();
+           DateTimeFormatter format =  DateTimeFormatter.ofPattern("dd.MM.yyyy");
+           LocalDate birth  = LocalDate.parse(scanner.nextLine(), format);
+           LocalDate death = null;
+           if (scanner.hasNextLine()) {
+               String tmp = scanner.nextLine();
+                if (tmp !="") {
+                    death = LocalDate.parse(tmp,format);
+                }
+           }
+           Person loadedPerson = new Person()
+           return loadedperson()
+       } catch (Exception e){
+            return null;
         }
     }
 }
