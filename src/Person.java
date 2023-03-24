@@ -69,14 +69,18 @@ public class Person implements Serializable {
            DateTimeFormatter format =  DateTimeFormatter.ofPattern("dd.MM.yyyy");
            LocalDate birth  = LocalDate.parse(scanner.nextLine(), format);
            LocalDate death = null;
+           Person loadedPerson;
            if (scanner.hasNextLine()) {
                String tmp = scanner.nextLine();
                 if (tmp !="") {
                     death = LocalDate.parse(tmp,format);
                 }
+                loadedPerson = new Person(name,birth,death);
+           } else {
+               loadedPerson = new Person(name,birth,null);
            }
-           Person loadedPerson = new Person()
-           return loadedperson()
+
+           return loadedPerson;
        } catch (Exception e){
             return null;
         }
