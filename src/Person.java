@@ -5,12 +5,14 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 public class Person implements Serializable {
-    private String name;
-    private LocalDate birth, death;
-    private Person parents[] = new Person[2];
+    private static String name;
+    private static LocalDate birth;
+    private static LocalDate death;
+    private static Person[] parents = new Person[2];
     private static List<TemporaryPerson> temporaryPeople = new ArrayList<>();
 
 
@@ -40,6 +42,7 @@ public class Person implements Serializable {
     public Person(String name, LocalDate birth, Person parent1, Person parent2) throws IncestException {
         this(name, birth, null, parent1, parent2);
     }
+
 
     @Override
     public String toString() {
@@ -87,15 +90,52 @@ public class Person implements Serializable {
 
         return result;
     }
-    public static List<Person> relations(String []filePaths){
-        for (String filePath : filePaths) {
-            Scanner scanner = new Scanner(filePath);
-            String name = scanner.nextLine();
-            LocalDate birth =LocalDate.parse(scanner.nextLine(), DateTimeFormatter.ofPattern("dd.MM.uuuu"));
-           if (scanner.nextLine().equals("Rodzice:")) {
+    public static List<Person> relations(String[] filePaths) throws IncestException {
+        List<Person> relatedPerson = new ArrayList<>();
 
-           }
+        for (String filePath : filePaths) {
+            try (Scanner scanner = new Scanner(new File(filePath))) {
+                String name = scanner.nextLine();
+                String[] parents = new String[2];
+                LocalDate death = null;
+                LocalDate birth = LocalDate.parse(scanner.nextLine(), DateTimeFormatter.ofPattern("dd.MM.uuuu"));
+
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    if (line.equals("Rodzice:")) {
+                        if (scanner.hasNextLine()) {
+                            parents[0] = scanner.nextLine();
+                        }
+                        if (scanner.hasNextLine()) {
+                            parents[1] = scanner.nextLine();
+                        }
+                    } else {
+                        death = LocalDate.parse(line, DateTimeFormatter.ofPattern("dd.MM.uuuu"));
+                    }
+                }
+
+                relatedPerson.add(new Person(name, birth, death, parents[0], parents[1]));
+            } catch (FileNotFoundException e) {
+                System.out.println("Plik " + filePath + " nie został odnaleziony.");
+            } catch (DateTimeParseException e) {
+                System.out.println("Błąd parsowania daty w pliku " + filePath);
+            }
         }
 
+        // Sprawdzenie powiązań rodzicielskich
+//        for (int i = 0; i < relatedPerson.size(); i++) {
+//            Person parent1 = relatedPerson.get(i);
+//            for (int j = i + 1; j < relatedPerson.size(); j++) {
+//                Person parent2 = relatedPerson.get(j);
+//                if (parent1.hasCommonChildWith(parent2)) {
+//                    throw new IncestException("Wykryto powiązanie rodzicielskie między " + parent1.getFullName() + " a " + parent2.getFullName());
+//                }
+//            }
+//        }
+
+        return relatedPerson;
     }
+
+
+
 }

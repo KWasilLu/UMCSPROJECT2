@@ -89,6 +89,11 @@ public class Main {
             e.printStackTrace();
             System.err.println(e.path1 + " " + e.path2);
         }
+        List<Person> result;
+        String[] paths = new String[3];
+        paths[0] = "test/test_rodzice/p4.txt";
+        paths[1] = "test/test_rodzice/p5.txt";
+        paths[2] = "test/test_rodzice/p8.txt";
 
 
         //save("people.bin");
