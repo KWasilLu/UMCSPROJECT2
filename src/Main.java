@@ -3,6 +3,7 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Main {
     public static void save(String path) {
@@ -71,10 +72,46 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) {
-        String path = "test/test_same_osoby/Elżbieta Głaz.txt";
-        Person person;
-         person = Person.loadPerson(path);
-        System.out.println(person);
+    public static void main(String[] args){
+        try {
+            Person p1 = Person.loadPerson("test/test_same_osoby/Alicja Stefanek.txt");
+            Person p2 = Person.loadPerson("test/test_same_osoby/Joanna Nowak.txt");
+            Person p3 = Person.loadPerson("test/test_same_osoby/abc.txt");
+
+
+            System.out.println(p1.toString());
+
+
+
+        } catch (FileNotFoundException e){
+            e.printStackTrace();
+        } catch (AmbigiousPersonException e) {
+            e.printStackTrace();
+            System.err.println(e.path1 + " " + e.path2);
+        }
+
+
+        //save("people.bin");
+
+        //load("people.bin");
+        /*
+        try {
+            Person mirek = new Person("Mirek",
+                    LocalDate.of(2130, 5, 7),
+                    LocalDate.of(1990, 8, 1));
+            System.out.println(mirek);
+        } catch (NegativeLifespanException e) {
+            e.printStackTrace();
+            System.err.println(e.lifespan);
+        } catch (DateTimeException e) {
+            System.err.println(e.getMessage());
+            System.out.println("DT EXC");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            System.out.println("FINALLY");
+        }
+         */
+
     }
 }

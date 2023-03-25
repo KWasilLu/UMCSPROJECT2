@@ -1,16 +1,17 @@
+import javax.swing.text.DateFormatter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.text.DateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Formatter;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 public class Person implements Serializable {
     private String name;
     private LocalDate birth, death;
     private Person parents[] = new Person[2];
+    private static List<TemporaryPerson> temporaryPeople = new ArrayList<>();
 
     public Person(String name, LocalDate birth) {
         this(name, birth, null);
@@ -49,7 +50,7 @@ public class Person implements Serializable {
                 '}';
     }
 
-    void checkForIncest() throws IncestException {
+    private void checkForIncest() throws IncestException {
         if(parents[0] == null || parents[1] == null)
             return;
         for(var leftSideParent : parents[0].parents) {
@@ -61,28 +62,28 @@ public class Person implements Serializable {
             }
         }
     }
-    public static Person loadPerson(String path) {
-        File file = new File(path);
-       try {
-           Scanner scanner = new Scanner(file);
-           String name = scanner.nextLine();
-           DateTimeFormatter format =  DateTimeFormatter.ofPattern("dd.MM.yyyy");
-           LocalDate birth  = LocalDate.parse(scanner.nextLine(), format);
-           LocalDate death = null;
-           Person loadedPerson;
-           if (scanner.hasNextLine()) {
-               String tmp = scanner.nextLine();
-                if (tmp !="") {
-                    death = LocalDate.parse(tmp,format);
-                }
-                loadedPerson = new Person(name,birth,death);
-           } else {
-               loadedPerson = new Person(name,birth,null);
-           }
-
-           return loadedPerson;
-       } catch (Exception e){
-            return null;
+    public static Person loadPerson(String filePath) throws FileNotFoundException, AmbigiousPersonException {
+        File file = new File(filePath);
+        Scanner s = new Scanner(file);
+        String name = s.nextLine();
+        LocalDate birth = LocalDate.parse(s.nextLine(), DateTimeFormatter.ofPattern("dd.MM.uuuu"));
+        LocalDate death = null;
+        if(s.hasNextLine()){
+            String deathText = s.nextLine();
+            if (deathText !="") {
+                death = LocalDate.parse(deathText, DateTimeFormatter.ofPattern("dd.MM.uuuu"));
+            }
         }
+
+        for(var i: temporaryPeople){
+            if(i.person.name.compareTo(name) == 0){
+                throw new AmbigiousPersonException(name, filePath, i.path);
+            }
+        }
+        Person result = new Person(name, birth, death);
+
+        temporaryPeople.add(new TemporaryPerson(result, filePath));
+
+        return result;
     }
 }
