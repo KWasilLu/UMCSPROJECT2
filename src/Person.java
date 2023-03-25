@@ -13,6 +13,7 @@ public class Person implements Serializable {
     private Person parents[] = new Person[2];
     private static List<TemporaryPerson> temporaryPeople = new ArrayList<>();
 
+
     public Person(String name, LocalDate birth) {
         this(name, birth, null);
     }
@@ -85,5 +86,16 @@ public class Person implements Serializable {
         temporaryPeople.add(new TemporaryPerson(result, filePath));
 
         return result;
+    }
+    public static List<Person> relations(String []filePaths){
+        for (String filePath : filePaths) {
+            Scanner scanner = new Scanner(filePath);
+            String name = scanner.nextLine();
+            LocalDate birth =LocalDate.parse(scanner.nextLine(), DateTimeFormatter.ofPattern("dd.MM.uuuu"));
+           if (scanner.nextLine().equals("Rodzice:")) {
+
+           }
+        }
+
     }
 }
