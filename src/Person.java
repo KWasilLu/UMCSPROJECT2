@@ -15,6 +15,9 @@ public class Person implements Serializable {
     private static Person[] parents = new Person[2];
     private static List<TemporaryPerson> temporaryPeople = new ArrayList<>();
 
+    public static List<Person> people = new ArrayList<>();
+
+    String path;
 
     public Person(String name, LocalDate birth) {
         this(name, birth, null);
@@ -57,85 +60,113 @@ public class Person implements Serializable {
     private void checkForIncest() throws IncestException {
         if(parents[0] == null || parents[1] == null)
             return;
-        for(var leftSideParent : parents[0].parents) {
+        for(var leftSideParent : parents) {
             if (leftSideParent == null) continue;
-            for (var rightSideParent : parents[1].parents) {
+            for (var rightSideParent : parents) {
                 if (rightSideParent == null) continue;
                 if (leftSideParent == rightSideParent)
                     throw new IncestException(leftSideParent, this);
             }
         }
     }
-    public static Person loadPerson(String filePath) throws FileNotFoundException, AmbigiousPersonException {
-        File file = new File(filePath);
-        Scanner s = new Scanner(file);
-        String name = s.nextLine();
-        LocalDate birth = LocalDate.parse(s.nextLine(), DateTimeFormatter.ofPattern("dd.MM.uuuu"));
-        LocalDate death = null;
-        if(s.hasNextLine()){
-            String deathText = s.nextLine();
-            if (deathText !="") {
-                death = LocalDate.parse(deathText, DateTimeFormatter.ofPattern("dd.MM.uuuu"));
-            }
-        }
-
-        for(var i: temporaryPeople){
-            if(i.person.name.compareTo(name) == 0){
-                throw new AmbigiousPersonException(name, filePath, i.path);
-            }
-        }
-        Person result = new Person(name, birth, death);
-
-        temporaryPeople.add(new TemporaryPerson(result, filePath));
-
-        return result;
-    }
-    public static List<Person> relations(String[] filePaths) throws IncestException {
-        List<Person> relatedPerson = new ArrayList<>();
-
-        for (String filePath : filePaths) {
-            try (Scanner scanner = new Scanner(new File(filePath))) {
-                String name = scanner.nextLine();
-                String[] parents = new String[2];
-                LocalDate death = null;
-                LocalDate birth = LocalDate.parse(scanner.nextLine(), DateTimeFormatter.ofPattern("dd.MM.uuuu"));
-
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    if (line.equals("Rodzice:")) {
-                        if (scanner.hasNextLine()) {
-                            parents[0] = scanner.nextLine();
-                        }
-                        if (scanner.hasNextLine()) {
-                            parents[1] = scanner.nextLine();
-                        }
-                    } else {
-                        death = LocalDate.parse(line, DateTimeFormatter.ofPattern("dd.MM.uuuu"));
-                    }
-                }
-
-                relatedPerson.add(new Person(name, birth, death, parents[0], parents[1]));
-            } catch (FileNotFoundException e) {
-                System.out.println("Plik " + filePath + " nie został odnaleziony.");
-            } catch (DateTimeParseException e) {
-                System.out.println("Błąd parsowania daty w pliku " + filePath);
-            }
-        }
-
-        // Sprawdzenie powiązań rodzicielskich
-//        for (int i = 0; i < relatedPerson.size(); i++) {
-//            Person parent1 = relatedPerson.get(i);
-//            for (int j = i + 1; j < relatedPerson.size(); j++) {
-//                Person parent2 = relatedPerson.get(j);
-//                if (parent1.hasCommonChildWith(parent2)) {
-//                    throw new IncestException("Wykryto powiązanie rodzicielskie między " + parent1.getFullName() + " a " + parent2.getFullName());
-//                }
+//    public static Person loadPerson(String filePath) throws FileNotFoundException, AmbigiousPersonException {
+//        File file = new File(filePath);
+//        Scanner s = new Scanner(file);
+//        String name = s.nextLine();
+//        LocalDate birth = LocalDate.parse(s.nextLine(), DateTimeFormatter.ofPattern("dd.MM.uuuu"));
+//        LocalDate death = null;
+//        if(s.hasNextLine()){
+//            String deathText = s.nextLine();
+//            if (deathText !="") {
+//                death = LocalDate.parse(deathText, DateTimeFormatter.ofPattern("dd.MM.uuuu"));
 //            }
 //        }
+//
+//        for(var i: temporaryPeople){
+//            if(i.person.name.compareTo(name) == 0){
+//                throw new AmbigiousPersonException(name, filePath, i.path);
+//            }
+//        }
+//        Person result = new Person(name, birth, death);
+//
+//        temporaryPeople.add(new TemporaryPerson(result, filePath));
+//
+//        return result;
+//    }
+    public static Person getPersonByName(String name) {
+        for (Person person : people) {
+            if (Person.name.equals(name)) {
+                return person;
+            }
+        }
+        return null;
+    }
 
-        return relatedPerson;
+    public void setPath (String path) {
+        this.path = path;
     }
 
 
+    public static Person CreateHuman(String WayToFile) throws FileNotFoundException, AmbigiousPersonException, IncestException {
+        File file = new File(WayToFile);
+        String name;
+        Scanner scanner = new Scanner(file);
+        name = scanner.nextLine();
+        LocalDate DateBirth = LocalDate.parse(scanner.nextLine(), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        LocalDate DateDeath = null;
+        Person parent1 = null;
+        Person parent2 = null;
 
+        if(scanner.hasNextLine()){
+            String line = scanner.nextLine();
+
+            if(!line.equals("Rodzice:")) {
+                DateDeath = LocalDate.parse(line, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+
+                if(scanner.hasNextLine()) {
+                    line = scanner.nextLine();
+                }
+            }
+
+            if(line.equals("Rodzice:")) {
+                parent1 = getPersonByName(scanner.nextLine());
+                if(scanner.hasNextLine()){
+                    parent2 = getPersonByName(scanner.nextLine());
+                }
+            }
+
+
+        }
+
+        for(var person : people){
+            if(Person.name.equals(name)){
+                throw new AmbigiousPersonException(name,WayToFile, person.path);
+            }
+        }
+        // CHECK
+        Person person1 = new Person(name,DateBirth,DateDeath, parent1, parent2);
+        person1.setPath(WayToFile);
+        people.add(person1);
+        return person1;
+    }
+
+    public static List<Person> createPeople(List<String> paths) throws IncestException, FileNotFoundException, AmbigiousPersonException {
+        List<Person> people = new ArrayList<>();
+
+        for(String path : paths) {
+            Person person = CreateHuman(path);
+            people.add(person);
+        }
+
+        return people;
+    }
 }
+
+
+
+
+
+
+
+
+
