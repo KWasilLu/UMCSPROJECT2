@@ -1,8 +1,10 @@
 import java.io.*;
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Main {
@@ -72,51 +74,27 @@ public class Main {
         }
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
+
         try {
-            Person p1 = Person.loadPerson("test/test_same_osoby/Alicja Stefanek.txt");
-            Person p2 = Person.loadPerson("test/test_same_osoby/Joanna Nowak.txt");
-            Person p3 = Person.loadPerson("test/test_same_osoby/abc.txt");
+            List<String> paths = new ArrayList<>();
+            paths.add("test/test_rodzice/p1.txt");
+            paths.add("test/test_rodzice/p2.txt");
+            paths.add("test/test_rodzice/p3.txt");
 
+            List<Person> result = Person.createPeople(paths);
 
-            System.out.println(p1.toString());
-
-
-
-        } catch (FileNotFoundException e){
-            e.printStackTrace();
-        } catch (AmbigiousPersonException e) {
-            e.printStackTrace();
-            System.err.println(e.path1 + " " + e.path2);
-        }
-        List<Person> result;
-        String[] paths = new String[3];
-        paths[0] = "test/test_rodzice/p4.txt";
-        paths[1] = "test/test_rodzice/p5.txt";
-        paths[2] = "test/test_rodzice/p8.txt";
-
-
-        //save("people.bin");
-
-        //load("people.bin");
-        /*
-        try {
-            Person mirek = new Person("Mirek",
-                    LocalDate.of(2130, 5, 7),
-                    LocalDate.of(1990, 8, 1));
-            System.out.println(mirek);
-        } catch (NegativeLifespanException e) {
-            e.printStackTrace();
-            System.err.println(e.lifespan);
-        } catch (DateTimeException e) {
-            System.err.println(e.getMessage());
-            System.out.println("DT EXC");
-        } catch (Exception e) {
+            System.out.println(result.get(2));
+        } catch (FileNotFoundException | ParentingAgeException | IncestException e) {
             throw new RuntimeException(e);
-        } finally {
-            System.out.println("FINALLY");
+        } catch (AmbigiousPersonException error) {
+            System.out.println(error.path1);
+            System.out.println(error.path2);
         }
-         */
 
+//        Person kamil = new Person("Kamil", LocalDate.of(1999,12,1),LocalDate.of(2012,1,2));
+//        kamil.getAge();
+//        System.out.println(kamil.getAge());
     }
+
 }

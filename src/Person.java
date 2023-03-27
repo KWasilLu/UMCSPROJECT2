@@ -1,23 +1,19 @@
-import javax.swing.text.DateFormatter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
-import java.text.DateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class Person implements Serializable {
-    private static String name;
+    private String name;
     private static LocalDate birth;
     private static LocalDate death;
-    private static Person[] parents = new Person[2];
-    private static List<TemporaryPerson> temporaryPeople = new ArrayList<>();
-
+    private Person parents[] = new Person[2];
     public static List<Person> people = new ArrayList<>();
+    public String path;
 
-    String path;
 
     public Person(String name, LocalDate birth) {
         this(name, birth, null);
@@ -46,7 +42,6 @@ public class Person implements Serializable {
         this(name, birth, null, parent1, parent2);
     }
 
-
     @Override
     public String toString() {
         return "Person{" +
@@ -57,57 +52,37 @@ public class Person implements Serializable {
                 '}';
     }
 
-    private void checkForIncest() throws IncestException {
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    void checkForIncest() throws IncestException {
         if(parents[0] == null || parents[1] == null)
             return;
-        for(var leftSideParent : parents) {
+        for(var leftSideParent : parents[0].parents) {
             if (leftSideParent == null) continue;
-            for (var rightSideParent : parents) {
+            for (var rightSideParent : parents[1].parents) {
                 if (rightSideParent == null) continue;
                 if (leftSideParent == rightSideParent)
                     throw new IncestException(leftSideParent, this);
             }
         }
     }
-//    public static Person loadPerson(String filePath) throws FileNotFoundException, AmbigiousPersonException {
-//        File file = new File(filePath);
-//        Scanner s = new Scanner(file);
-//        String name = s.nextLine();
-//        LocalDate birth = LocalDate.parse(s.nextLine(), DateTimeFormatter.ofPattern("dd.MM.uuuu"));
-//        LocalDate death = null;
-//        if(s.hasNextLine()){
-//            String deathText = s.nextLine();
-//            if (deathText !="") {
-//                death = LocalDate.parse(deathText, DateTimeFormatter.ofPattern("dd.MM.uuuu"));
-//            }
-//        }
-//
-//        for(var i: temporaryPeople){
-//            if(i.person.name.compareTo(name) == 0){
-//                throw new AmbigiousPersonException(name, filePath, i.path);
-//            }
-//        }
-//        Person result = new Person(name, birth, death);
-//
-//        temporaryPeople.add(new TemporaryPerson(result, filePath));
-//
-//        return result;
-//    }
+     long getAge() {
+        return ChronoUnit.YEARS.between(birth,LocalDate.now());
+    }
+
     public static Person getPersonByName(String name) {
-        for (Person person : people) {
-            if (Person.name.equals(name)) {
+        for(Person person : people) {
+            if(person.name.equals(name)) {
                 return person;
             }
         }
+
         return null;
     }
 
-    public void setPath (String path) {
-        this.path = path;
-    }
-
-
-    public static Person CreateHuman(String WayToFile) throws FileNotFoundException, AmbigiousPersonException, IncestException {
+    public static Person CreateHuman(String WayToFile) throws FileNotFoundException, AmbigiousPersonException, IncestException, ParentingAgeException {
         File file = new File(WayToFile);
         String name;
         Scanner scanner = new Scanner(file);
@@ -130,8 +105,11 @@ public class Person implements Serializable {
 
             if(line.equals("Rodzice:")) {
                 parent1 = getPersonByName(scanner.nextLine());
+                if (parent1.getAge() < 15 || parent1.getAge() > 50 || DateDeath != null) throw new ParentingAgeException("Dziwny wiek");
+                parent2 = null;
                 if(scanner.hasNextLine()){
                     parent2 = getPersonByName(scanner.nextLine());
+                    if (parent2.getAge() < 15 || parent2.getAge() > 50 || DateDeath != null) throw new ParentingAgeException("Dziwny wiek2");
                 }
             }
 
@@ -139,7 +117,7 @@ public class Person implements Serializable {
         }
 
         for(var person : people){
-            if(Person.name.equals(name)){
+            if(person.name.equals(name)){
                 throw new AmbigiousPersonException(name,WayToFile, person.path);
             }
         }
@@ -150,7 +128,7 @@ public class Person implements Serializable {
         return person1;
     }
 
-    public static List<Person> createPeople(List<String> paths) throws IncestException, FileNotFoundException, AmbigiousPersonException {
+    public static List<Person> createPeople(List<String> paths) throws IncestException, FileNotFoundException, AmbigiousPersonException, ParentingAgeException {
         List<Person> people = new ArrayList<>();
 
         for(String path : paths) {
